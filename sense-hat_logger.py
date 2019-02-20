@@ -27,11 +27,11 @@ def main():
 
 def log_data():
     ts = time.time()
-    read_ts = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
+    #read_ts = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
     
     print('Beginning logging')
     
-    with open(folder_path + '/' + socket.gethostname() + '_data_log_' + read_ts + '.csv', mode = 'w') as csv_file:
+    with open(folder_path + '/' + socket.gethostname() + '_data_log_' + str(time.time()) + '.csv', mode = 'w') as csv_file:
         fieldnames = ['TimeStamp', 'Temperature',
                       'Barometric Pressure', 'Humidity']
         
