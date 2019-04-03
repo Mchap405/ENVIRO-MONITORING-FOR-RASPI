@@ -6,6 +6,13 @@ import time
 from shutil import copyfile
 from multiprocessing import Process
 
+'''
+Importing the libraries needed to connect to firebase.
+Checking if an  error as occured while trying to import the libraries needed to connect the database. 
+Firebase-admin all has to be installed via PIP.
+We are installing the packages automatically in case firebase-admin are not installed. 
+However Pip3 needs to be installed. 
+'''
 try:
     import firebase_admin
     from firebase_admin import credentials
@@ -38,6 +45,10 @@ db = firestore.client()
 #GLOBALS----------------------------
 csv_storage_path = "csv_storage/"
 #-----------------------------------
+
+'''
+# Creating the File Upload Blob
+'''
 
 def upload_blob(source_file_name, destination_blob_name):
     
