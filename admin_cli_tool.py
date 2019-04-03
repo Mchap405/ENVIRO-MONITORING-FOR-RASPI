@@ -2,6 +2,14 @@ import subprocess
 import glob
 import shutil
 
+
+'''
+Importing the libraries needed to connect to firebase.
+Checking if an  error as occured while trying to import the libraries needed to connect the database. 
+Firebase-admin, matplotlib and numpy all has to be installed via PIP.
+We are installing the packages automatically in case firebase-admin, matplotlib and numpy are not installed. 
+However Pip3 needs to be installed. 
+'''
 try:
     import firebase_admin
     import matplotlib.pyplot as plt
@@ -9,7 +17,6 @@ try:
     from firebase_admin import credentials
     from firebase_admin import storage
     from firebase_admin import firestore
-    
 
 except ImportError as e:
     print(e.msg)
@@ -31,6 +38,9 @@ except ImportError as e:
         print("Exiting")
         exit(1)
 
+'''
+# Configuring the credential cert for the storage bucket in firebase. This is where the files are stored
+'''
 cred = credentials.Certificate('Resources/raspberry-pi-monitoring-firebase-adminsdk-9q3qx-b62c8051b4.json')
 firebase_admin.initialize_app(cred, {
     'storageBucket': 'raspberry-pi-monitoring.appspot.com'
@@ -45,6 +55,9 @@ def main():
     menu()
     return
 
+'''
+# Returning all the collections, their ID, in the firebase by iterating through them
+'''
 def list_folders():
     collections = db.collections()
 
@@ -53,6 +66,9 @@ def list_folders():
 
     return
 
+'''
+# Accessing the document in a collectiong depending on the user input
+'''
 def list_all_files_in_folder():
     user_choice = input('What folder would you like to view the contents of?: ')
 
@@ -63,6 +79,11 @@ def list_all_files_in_folder():
 
     return
 
+'''
+# Getting the collection id
+# Navigating to the right document from user input through iteration
+# Then deleting that document from the collection.
+'''
 def delete_file():
     collections = db.collections()
     print('Collections: ')
@@ -85,21 +106,29 @@ def delete_file():
 
     print('\nDeleted all files')
 
+'''
+# Downloading the files from the firebase storage bucket.
+'''
 def download_all_files():
+    # Adding all the collection names to the list
     list_of_folders = list()
     for collection in db.collections():
         list_of_folders.append(collection.id)
 
+    # Accessing all the docs in each collection
+    # Downloading the file one after another
     for folder in list_of_folders:
         docs = db.collection(folder).get()
         for doc in docs:
             blob = bucket.blob(folder + '/' + doc.id)
             blob.download_to_filename('file.foo')
             shutil.move('file.foo', path + folder + '/' + doc.id)
-        
-
     return
 
+'''
+# Finding the average from the right file based on user input. Here we are only
+# getting the user input
+'''
 def get_average():
     while True:
         try:
@@ -114,24 +143,30 @@ def get_average():
 
     return
 
+'''
+# Calculating the average by accessing the right file
+'''
 def generate_average_from_files(index):
     recorded_units = ['Temperature', 'Barometric Pressure', 'Humidity']
 
     print(f'\n{recorded_units[index - 1]} Averages: ')
+    # Holds the sum of all the metrics in the file
     overall_value_holder = float()
+    # Holds the number of metrics taken into account
     overall_number_of_value_track = 0
-
     list_of_folders = glob.glob(path + '*')
 
     folder_map = dict()
 
+# Iterating through the folder one after another
     for csv_folders in list_of_folders:
         
         value_holder = float()
         number_of_value_track = 0
-
+# Getting all the files from the folder
         list_of_csv_files = glob.glob(csv_folders + '\\*.csv')
 
+# Iterating over the each file in a folder.
         for each_file in list_of_csv_files:
 
             with open(each_file, 'r') as csv_file:
@@ -142,21 +177,31 @@ def generate_average_from_files(index):
                     values = line.split(',')
                     value_holder += float(values[index])
                     number_of_value_track += 1
-                    
+
+# Calculating the average of a metrics in a single file
         average = value_holder / number_of_value_track
         print('\t' + csv_folders.split('\\')[1] + f': {average}')
-        
+
+# Mapping the average to the file its generated from a file
         folder_map[csv_folders.split('\\')[1]] = average
-        
+
+# Adding it to the overall value
         overall_value_holder += value_holder
+# Adding the total number of values
         overall_number_of_value_track += number_of_value_track
-    
+
+# Calculating the overall average
     overall_average = overall_value_holder / overall_number_of_value_track
     folder_map['Overall'] = overall_average
     print(f'\tOverall Average: {overall_average}')
     
     plot_averages(folder_map, recorded_units[index - 1])
-    
+
+
+'''
+# Plotting the graph for the average calculated above
+# Plotting the graph for the average calculated above
+'''
 def plot_averages(map_of_averages, unit):
 
     y_axis = [0, 100]
@@ -174,6 +219,14 @@ def plot_averages(map_of_averages, unit):
     return
 
 def menu():
+    '''
+        Asking user input for the operation that needs to be performed, namely:
+        1 - List all Folders
+        2 - List the files Folders
+        3 - Delete File
+        4 - Download all Files
+        5 - Get the average from the value present in the files
+    '''
     while True:
         try:
             user_choice = int(input('\n1. List all Folders\n2. List all files within a folder\n3. Delete a file\n4. Download All Files\n5. Get Average of Values from All Files\n6. Exit\n'))
